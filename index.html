@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
         #map {
             height: 600px;
             width: 100%;
@@ -16,12 +23,16 @@
             margin-top: 20px;
             border: 1px solid black;
         }
+        #area {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Rust Detection on Aerial Images</h1>
     <div id="map"></div>
     <canvas id="outputCanvas"></canvas>
+    <div id="area"></div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="script.js"></script>
