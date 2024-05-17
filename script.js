@@ -115,7 +115,8 @@ function geocodeQuery(query) {
             if (data.length > 0) {
                 const lat = data[0].lat;
                 const lon = data[0].lon;
-                map.setView([lat, lon], 14);
+                map.setView([lat, lon], 18);
+                fetchBuildingData([lat, lon]);
             } else {
                 alert('Location not found. Please try a different query.');
             }
@@ -123,5 +124,28 @@ function geocodeQuery(query) {
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while searching. Please try again.');
+        });
+}
+
+function fetchBuildingData(center) {
+    const lat = center[0];
+    const lon = center[1];
+    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];way[building](around:50,${lat},${lon});out body;`;
+
+    fetch(overpassUrl)
+        .then(response => response.json())
+        .then(data => {
+            const elements = data.elements;
+            if (elements.length > 0) {
+                const polygon = L.polygon(elements[0].geometry.map(point => [point.lat, point.lon]));
+                drawnItems.addLayer(polygon);
+                analyzeRust(polygon);
+            } else {
+                alert('No building data found for this location.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while fetching building data. Please try again.');
         });
 }
