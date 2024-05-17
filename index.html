@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rust Detection on Aerial Images</title>
+    <title>Map with Polygon Drawing and Compass</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <style>
@@ -18,23 +18,39 @@
             height: 600px;
             width: 100%;
         }
-        #outputCanvas {
-            display: block;
-            margin-top: 20px;
-            border: 1px solid black;
-        }
         #area {
             margin-top: 10px;
+        }
+        #compass {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid black;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        #compass img {
+            width: 80%;
         }
     </style>
 </head>
 <body>
-    <h1>Rust Detection on Aerial Images</h1>
+    <h1>Map with Polygon Drawing and Compass</h1>
     <div id="map"></div>
-    <canvas id="outputCanvas"></canvas>
     <div id="area"></div>
+    <div id="compass">
+        <img src="compass.png" alt="Compass" id="compassImg"/>
+    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/leaflet-rotatedmarker/leaflet.rotatedMarker.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
