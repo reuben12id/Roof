@@ -1,30 +1,77 @@
-const imageLoader = document.getElementById('imageLoader');
-const originalCanvas = document.getElementById('originalCanvas');
-const processedCanvas = document.getElementById('processedCanvas');
-const originalCtx = originalCanvas.getContext('2d');
-const processedCtx = processedCanvas.getContext('2d');
+const map = L.map('map').setView([-41.2865, 174.7762], 14);  // Centered on Wellington, New Zealand
 
-imageLoader.addEventListener('change', handleImage, false);
+L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
+    maxZoom: 22,
+    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
+}).addTo(map);
 
-function handleImage(e) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+    edit: {
+        featureGroup: drawnItems
+    },
+    draw: {
+        polygon: true,
+        polyline: false,
+        rectangle: false,
+        circle: false,
+        marker: false
+    }
+});
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, function(event) {
+    const layer = event.layer;
+    drawnItems.addLayer(layer);
+    const latLngs = layer.getLatLngs();
+    processPolygon(latLngs);
+});
+
+function processPolygon(latLngs) {
+    const bounds = L.latLngBounds(latLngs[0]);
+    const zoom = map.getZoom();
+    const size = map.getSize();
+    const canvas = document.getElementById('outputCanvas');
+    const context = canvas.getContext('2d');
+
+    canvas.width = size.x;
+    canvas.height = size.y;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    const tiles = [];
+    const tileSize = 256;
+
+    for (let x = 0; x < size.x; x += tileSize) {
+        for (let y = 0; y < size.y; y += tileSize) {
+            const point = map.containerPointToLatLng([x, y]);
+            const tileCoords = map.project(point, zoom).divideBy(tileSize).floor();
+            tiles.push(tileCoords);
+        }
+    }
+
+    tiles.forEach(tileCoords => {
+        const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${zoom}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
         const img = new Image();
-        img.onload = function () {
-            originalCanvas.width = img.width;
-            originalCanvas.height = img.height;
-            processedCanvas.width = img.width;
-            processedCanvas.height = img.height;
-            originalCtx.drawImage(img, 0, 0);
-            detectRust();
+        img.crossOrigin = "Anonymous";
+        img.src = url;
+
+        img.onload = function() {
+            const x = tileCoords.x * tileSize - map.getPixelBounds().min.x;
+            const y = tileCoords.y * tileSize - map.getPixelBounds().min.y;
+            context.drawImage(img, x, y, tileSize, tileSize);
         };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(e.target.files[0]);
+    });
+
+    setTimeout(() => {
+        detectRust(canvas, context);
+    }, 2000);  // Adjust delay as needed to ensure all tiles are loaded
 }
 
-function detectRust() {
-    const imageData = originalCtx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+function detectRust(canvas, context) {
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
     const lowerRust = [100, 40, 20];  // Lower bound for rust color (extended range)
@@ -53,5 +100,5 @@ function detectRust() {
         }
     }
 
-    processedCtx.putImageData(imageData, 0, 0);
+    context.putImageData(imageData, 0, 0);
 }
