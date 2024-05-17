@@ -67,13 +67,13 @@ function processPolygon(latLngs) {
 
             loadedTiles++;
             if (loadedTiles === tiles.length) {
-                detectRust(canvas, context);
+                detectRust(canvas, context, latLngs[0]);
             }
         };
     });
 }
 
-function detectRust(canvas, context) {
+function detectRust(canvas, context, latLngs) {
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
@@ -81,25 +81,54 @@ function detectRust(canvas, context) {
     const upperRust = [200, 120, 80];  // Adjusted upper bound for rust color based on provided images
     const closeToRust = 40;  // Tolerance for "close to rust" colors
 
-    for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+    // Create a mask based on the polygon
+    const maskCanvas = document.createElement('canvas');
+    const maskContext = maskCanvas.getContext('2d');
+    maskCanvas.width = canvas.width;
+    maskCanvas.height = canvas.height;
 
-        if (r >= lowerRust[0] && r <= upperRust[0] && 
-            g >= lowerRust[1] && g <= upperRust[1] && 
-            b >= lowerRust[2] && b <= upperRust[2]) {
-            data[i] = 255; // Red
-            data[i + 1] = 0; // Green
-            data[i + 2] = 0; // Blue
-        } else if (Math.abs(r - lowerRust[0]) <= closeToRust &&
-                   Math.abs(g - lowerRust[1]) <= closeToRust &&
-                   Math.abs(b - lowerRust[2]) <= closeToRust) {
-            data[i] = 255; // Yellow outline for close to rust colors
-            data[i + 1] = 255; 
-            data[i + 2] = 0; 
+    maskContext.beginPath();
+    latLngs.forEach((latLng, index) => {
+        const point = map.latLngToContainerPoint(latLng);
+        if (index === 0) {
+            maskContext.moveTo(point.x, point.y);
         } else {
-            data[i + 3] = 50; // Reduce opacity for non-rust areas
+            maskContext.lineTo(point.x, point.y);
+        }
+    });
+    maskContext.closePath();
+    maskContext.fill();
+
+    const maskImageData = maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+    const maskData = maskImageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        const x = (i / 4) % canvas.width;
+        const y = Math.floor((i / 4) / canvas.width);
+
+        const maskIndex = (y * maskCanvas.width + x) * 4;
+        if (maskData[maskIndex + 3] > 0) {  // Check if pixel is within the polygon
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            if (r >= lowerRust[0] && r <= upperRust[0] && 
+                g >= lowerRust[1] && g <= upperRust[1] && 
+                b >= lowerRust[2] && b <= upperRust[2]) {
+                data[i] = 255; // Red
+                data[i + 1] = 0; // Green
+                data[i + 2] = 0; // Blue
+            } else if (Math.abs(r - lowerRust[0]) <= closeToRust &&
+                       Math.abs(g - lowerRust[1]) <= closeToRust &&
+                       Math.abs(b - lowerRust[2]) <= closeToRust) {
+                data[i] = 255; // Yellow outline for close to rust colors
+                data[i + 1] = 255; 
+                data[i + 2] = 0; 
+            } else {
+                data[i + 3] = 50; // Reduce opacity for non-rust areas
+            }
+        } else {
+            data[i + 3] = 0;  // Make pixels outside the polygon fully transparent
         }
     }
 
