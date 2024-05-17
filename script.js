@@ -1,4 +1,4 @@
-const map = L.map('map').setView([-41.2865, 174.7762], 14);  // Centered on Wellington, New Zealand
+const map = L.map('map').setView([-36.8485, 174.7633], 14);  // Centered on Auckland CBD
 
 L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
     maxZoom: 22,
@@ -27,6 +27,7 @@ map.on(L.Draw.Event.CREATED, function(event) {
     drawnItems.addLayer(layer);
     const latLngs = layer.getLatLngs();
     processPolygon(latLngs);
+    displayArea(layer);
 });
 
 function processPolygon(latLngs) {
@@ -52,6 +53,7 @@ function processPolygon(latLngs) {
         }
     }
 
+    let loadedTiles = 0;
     tiles.forEach(tileCoords => {
         const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${zoom}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
         const img = new Image();
@@ -62,20 +64,21 @@ function processPolygon(latLngs) {
             const x = tileCoords.x * tileSize - map.getPixelBounds().min.x;
             const y = tileCoords.y * tileSize - map.getPixelBounds().min.y;
             context.drawImage(img, x, y, tileSize, tileSize);
+
+            loadedTiles++;
+            if (loadedTiles === tiles.length) {
+                detectRust(canvas, context);
+            }
         };
     });
-
-    setTimeout(() => {
-        detectRust(canvas, context);
-    }, 2000);  // Adjust delay as needed to ensure all tiles are loaded
 }
 
 function detectRust(canvas, context) {
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    const lowerRust = [100, 40, 20];  // Lower bound for rust color (extended range)
-    const upperRust = [255, 150, 100];  // Upper bound for rust color (extended range)
+    const lowerRust = [60, 20, 10];  // Adjusted lower bound for rust color based on provided images
+    const upperRust = [200, 120, 80];  // Adjusted upper bound for rust color based on provided images
     const closeToRust = 40;  // Tolerance for "close to rust" colors
 
     for (let i = 0; i < data.length; i += 4) {
@@ -101,4 +104,10 @@ function detectRust(canvas, context) {
     }
 
     context.putImageData(imageData, 0, 0);
+}
+
+function displayArea(layer) {
+    const latLngs = layer.getLatLngs()[0];
+    const area = L.GeometryUtil.geodesicArea(latLngs);
+    document.getElementById('area').innerHTML = `Area: ${(area / 10000).toFixed(2)} m<sup>2</sup>`;
 }
