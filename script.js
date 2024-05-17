@@ -98,3 +98,30 @@ function detectRust(canvas) {
     context.putImageData(imageData, 0, 0);
     document.getElementById('rust-detection').innerHTML = `Rust Detection: Completed`;
 }
+
+const searchBar = document.getElementById('search-bar');
+
+searchBar.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        const query = searchBar.value;
+        geocodeQuery(query);
+    }
+});
+
+function geocodeQuery(query) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                const lat = data[0].lat;
+                const lon = data[0].lon;
+                map.setView([lat, lon], 14);
+            } else {
+                alert('Location not found. Please try a different query.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while searching. Please try again.');
+        });
+}
