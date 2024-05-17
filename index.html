@@ -3,33 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rust Detection</title>
+    <title>Rust Detection on Aerial Images</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        canvas {
-            border: 1px solid black;
-            margin-top: 20px;
-        }
-        #output {
-            display: flex;
-            justify-content: space-around;
+        #map {
+            height: 600px;
             width: 100%;
+        }
+        #outputCanvas {
+            display: block;
+            margin-top: 20px;
+            border: 1px solid black;
         }
     </style>
 </head>
 <body>
-    <h1>Rust Detection on Roof Images</h1>
-    <input type="file" id="imageLoader" name="imageLoader"/>
-    <div id="output">
-        <canvas id="originalCanvas"></canvas>
-        <canvas id="processedCanvas"></canvas>
-    </div>
+    <h1>Rust Detection on Aerial Images</h1>
+    <div id="map"></div>
+    <canvas id="outputCanvas"></canvas>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
