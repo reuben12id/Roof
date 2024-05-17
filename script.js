@@ -137,10 +137,14 @@ function fetchBuildingData(center) {
         .then(data => {
             const elements = data.elements;
             if (elements.length > 0) {
-                const coordinates = elements[0].geometry.map(point => [point.lat, point.lon]);
-                const polygon = L.polygon(coordinates);
-                drawnItems.addLayer(polygon);
-                analyzeRust(polygon);
+                elements.forEach(element => {
+                    if (element.type === "way") {
+                        const coordinates = element.geometry.map(point => [point.lat, point.lon]);
+                        const polygon = L.polygon(coordinates).addTo(map);
+                        drawnItems.addLayer(polygon);
+                        analyzeRust(polygon);
+                    }
+                });
             } else {
                 alert('No building data found for this location.');
             }
