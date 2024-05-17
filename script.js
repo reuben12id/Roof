@@ -1,6 +1,6 @@
 const map = L.map('map').setView([-36.8485, 174.7633], 14);  // Centered on Auckland CBD
 
-L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
+L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/auckland-central-2023-0.06m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
     maxZoom: 22,
     attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
 }).addTo(map);
@@ -25,34 +25,8 @@ map.addControl(drawControl);
 map.on(L.Draw.Event.CREATED, function(event) {
     const layer = event.layer;
     drawnItems.addLayer(layer);
-    displayArea(layer);
     analyzeRust(layer);
 });
-
-function displayArea(layer) {
-    const latLngs = layer.getLatLngs()[0];
-    const knownLength = parseFloat(document.getElementById('known-length').value);
-    if (isNaN(knownLength) || knownLength <= 0) {
-        alert("Please enter a valid known length in meters.");
-        return;
-    }
-
-    const latLngBounds = L.latLngBounds(latLngs);
-    const bounds = latLngBounds.getBounds();
-    const ne = bounds.getNorthEast();
-    const sw = bounds.getSouthWest();
-    const distance = map.distance(ne, sw);
-    
-    const scaleFactor = knownLength / distance;
-    const scaledLatLngs = latLngs.map(latLng => [
-        (latLng.lat - sw.lat) * scaleFactor + sw.lat,
-        (latLng.lng - sw.lng) * scaleFactor + sw.lng
-    ]);
-    
-    const polygon = turf.polygon([scaledLatLngs.map(latLng => [latLng[1], latLng[0]])]);
-    const area = turf.area(polygon);
-    document.getElementById('area').innerHTML = `Area: ${(area / 10000).toFixed(2)} m<sup>2</sup>`;
-}
 
 function analyzeRust(layer) {
     const latLngs = layer.getLatLngs()[0];
@@ -79,7 +53,7 @@ function analyzeRust(layer) {
 
     let loadedTiles = 0;
     tiles.forEach(tileCoords => {
-        const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${map.getZoom()}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
+        const url = `https://basemaps.linz.govt.nz/v1/tiles/auckland-central-2023-0.06m/WebMercatorQuad/${map.getZoom()}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = url;
@@ -117,7 +91,7 @@ function detectRust(canvas) {
             data[i + 1] = 0;
             data[i + 2] = 0;
         } else {
-            data[i + 3] = 50;  // Reduce opacity for non-rust areas
+            data[i + 3] = 200;  // Increase opacity for non-rust areas
         }
     }
 
