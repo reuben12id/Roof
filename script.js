@@ -137,7 +137,8 @@ function fetchBuildingData(center) {
         .then(data => {
             const elements = data.elements;
             if (elements.length > 0) {
-                const polygon = L.polygon(elements[0].geometry.map(point => [point.lat, point.lon]));
+                const coordinates = elements[0].geometry.map(point => [point.lat, point.lon]);
+                const polygon = L.polygon(coordinates);
                 drawnItems.addLayer(polygon);
                 analyzeRust(polygon);
             } else {
