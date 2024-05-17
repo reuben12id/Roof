@@ -35,15 +35,44 @@ function displayArea(layer) {
     document.getElementById('area').innerHTML = `Area: ${(area / 10000).toFixed(2)} m<sup>2</sup>`;
 }
 
+// Compass rotation logic
 const compass = document.getElementById('compass');
-const compassImg = document.getElementById('compassImg');
-let currentRotation = 0;
+const innerCircle = document.querySelector('.inner-circle');
+let isDragging = false;
+let startAngle = 0;
 
-compass.addEventListener('click', () => {
-    currentRotation = (currentRotation + 15) % 360;
-    map.setBearing(currentRotation);
-    compassImg.style.transform = `rotate(${currentRotation}deg)`;
+compass.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startAngle = getMouseAngle(e);
 });
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const angle = getMouseAngle(e);
+        const rotation = (angle - startAngle + currentRotation + 360) % 360;
+        map.setBearing(rotation);
+        innerCircle.style.transform = `rotate(${rotation}deg)`;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        currentRotation = map.getBearing();
+    }
+});
+
+function getMouseAngle(e) {
+    const rect = compass.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const mouseX = e.clientX - centerX;
+    const mouseY = e.clientY - centerY;
+    const angle = Math.atan2(mouseY, mouseX) * (180 / Math.PI);
+    return (angle + 360) % 360;
+}
+
+let currentRotation = 0;
 
 L.Map.include({
     setBearing: function(angle) {
