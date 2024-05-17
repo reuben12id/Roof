@@ -1,4 +1,4 @@
-const map = L.map('map').setView([-41.2865, 174.7762], 14);  // Centered on Wellington, New Zealand
+const map = L.map('map').setView([-36.8485, 174.7633], 14);  // Centered on Auckland CBD
 
 L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
     maxZoom: 22,
@@ -25,20 +25,45 @@ map.addControl(drawControl);
 map.on(L.Draw.Event.CREATED, function(event) {
     const layer = event.layer;
     drawnItems.addLayer(layer);
-    const latLngs = layer.getLatLngs();
-    processPolygon(latLngs);
+    displayArea(layer);
+    analyzeRust(layer);
 });
 
-function processPolygon(latLngs) {
-    const bounds = L.latLngBounds(latLngs[0]);
-    const zoom = map.getZoom();
+function displayArea(layer) {
+    const latLngs = layer.getLatLngs()[0];
+    const knownLength = parseFloat(document.getElementById('known-length').value);
+    if (isNaN(knownLength) || knownLength <= 0) {
+        alert("Please enter a valid known length in meters.");
+        return;
+    }
+
+    const latLngBounds = L.latLngBounds(latLngs);
+    const bounds = latLngBounds.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    const distance = map.distance(ne, sw);
+    
+    const scaleFactor = knownLength / distance;
+    const scaledLatLngs = latLngs.map(latLng => [
+        (latLng.lat - sw.lat) * scaleFactor + sw.lat,
+        (latLng.lng - sw.lng) * scaleFactor + sw.lng
+    ]);
+    
+    const polygon = turf.polygon([scaledLatLngs.map(latLng => [latLng[1], latLng[0]])]);
+    const area = turf.area(polygon);
+    document.getElementById('area').innerHTML = `Area: ${(area / 10000).toFixed(2)} m<sup>2</sup>`;
+}
+
+function analyzeRust(layer) {
+    const latLngs = layer.getLatLngs()[0];
+    const bounds = L.latLngBounds(latLngs);
     const size = map.getSize();
     const canvas = document.getElementById('outputCanvas');
     const context = canvas.getContext('2d');
-
+    
     canvas.width = size.x;
     canvas.height = size.y;
-
+    
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     const tiles = [];
@@ -47,14 +72,14 @@ function processPolygon(latLngs) {
     for (let x = 0; x < size.x; x += tileSize) {
         for (let y = 0; y < size.y; y += tileSize) {
             const point = map.containerPointToLatLng([x, y]);
-            const tileCoords = map.project(point, zoom).divideBy(tileSize).floor();
+            const tileCoords = map.project(point, map.getZoom()).divideBy(tileSize).floor();
             tiles.push(tileCoords);
         }
     }
 
     let loadedTiles = 0;
     tiles.forEach(tileCoords => {
-        const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${zoom}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
+        const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${map.getZoom()}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = url;
@@ -66,19 +91,19 @@ function processPolygon(latLngs) {
 
             loadedTiles++;
             if (loadedTiles === tiles.length) {
-                detectRust(canvas, context);
+                detectRust(canvas);
             }
         };
     });
 }
 
-function detectRust(canvas, context) {
+function detectRust(canvas) {
+    const context = canvas.getContext('2d');
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
     const lowerRust = [60, 20, 10];  // Adjusted lower bound for rust color based on provided images
     const upperRust = [200, 120, 80];  // Adjusted upper bound for rust color based on provided images
-    const closeToRust = 40;  // Tolerance for "close to rust" colors
 
     for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
@@ -88,19 +113,14 @@ function detectRust(canvas, context) {
         if (r >= lowerRust[0] && r <= upperRust[0] && 
             g >= lowerRust[1] && g <= upperRust[1] && 
             b >= lowerRust[2] && b <= upperRust[2]) {
-            data[i] = 255; // Red
-            data[i + 1] = 0; // Green
-            data[i + 2] = 0; // Blue
-        } else if (Math.abs(r - lowerRust[0]) <= closeToRust &&
-                   Math.abs(g - lowerRust[1]) <= closeToRust &&
-                   Math.abs(b - lowerRust[2]) <= closeToRust) {
-            data[i] = 255; // Yellow outline for close to rust colors
-            data[i + 1] = 255; 
-            data[i + 2] = 0; 
+            data[i] = 255;  // Highlight rust areas in red
+            data[i + 1] = 0;
+            data[i + 2] = 0;
         } else {
-            data[i + 3] = 50; // Reduce opacity for non-rust areas
+            data[i + 3] = 50;  // Reduce opacity for non-rust areas
         }
     }
 
     context.putImageData(imageData, 0, 0);
+    document.getElementById('rust-detection').innerHTML = `Rust Detection: Completed`;
 }
