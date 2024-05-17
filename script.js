@@ -1,4 +1,4 @@
-const map = L.map('map').setView([-36.8485, 174.7633], 14);  // Centered on Auckland CBD
+const map = L.map('map').setView([-41.2865, 174.7762], 14);  // Centered on Wellington, New Zealand
 
 L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
     maxZoom: 22,
@@ -25,70 +25,82 @@ map.addControl(drawControl);
 map.on(L.Draw.Event.CREATED, function(event) {
     const layer = event.layer;
     drawnItems.addLayer(layer);
-    displayArea(layer);
+    const latLngs = layer.getLatLngs();
+    processPolygon(latLngs);
 });
 
-function displayArea(layer) {
-    const latLngs = layer.getLatLngs()[0];
-    const polygon = turf.polygon([latLngs.map(latLng => [latLng.lng, latLng.lat])]);
-    const area = turf.area(polygon);
-    document.getElementById('area').innerHTML = `Area: ${(area / 10000).toFixed(2)} m<sup>2</sup>`;
-}
+function processPolygon(latLngs) {
+    const bounds = L.latLngBounds(latLngs[0]);
+    const zoom = map.getZoom();
+    const size = map.getSize();
+    const canvas = document.getElementById('outputCanvas');
+    const context = canvas.getContext('2d');
 
-// Compass rotation logic
-const compass = document.getElementById('compass');
-const innerCircle = document.querySelector('.inner-circle');
-let isDragging = false;
-let startAngle = 0;
+    canvas.width = size.x;
+    canvas.height = size.y;
 
-compass.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startAngle = getMouseAngle(e);
-});
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-document.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-        const angle = getMouseAngle(e);
-        const rotation = (angle - startAngle + currentRotation + 360) % 360;
-        map.setBearing(rotation);
-        innerCircle.style.transform = `rotate(${rotation}deg)`;
+    const tiles = [];
+    const tileSize = 256;
+
+    for (let x = 0; x < size.x; x += tileSize) {
+        for (let y = 0; y < size.y; y += tileSize) {
+            const point = map.containerPointToLatLng([x, y]);
+            const tileCoords = map.project(point, zoom).divideBy(tileSize).floor();
+            tiles.push(tileCoords);
+        }
     }
-});
 
-document.addEventListener('mouseup', () => {
-    if (isDragging) {
-        isDragging = false;
-        currentRotation = map.getBearing();
-    }
-});
+    let loadedTiles = 0;
+    tiles.forEach(tileCoords => {
+        const url = `https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/${zoom}/${tileCoords.x}/${tileCoords.y}.webp?api=c01hxzamyva2g6m208n3sqhsv23`;
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = url;
 
-function getMouseAngle(e) {
-    const rect = compass.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const mouseX = e.clientX - centerX;
-    const mouseY = e.clientY - centerY;
-    const angle = Math.atan2(mouseY, mouseX) * (180 / Math.PI);
-    return (angle + 360) % 360;
-}
+        img.onload = function() {
+            const x = tileCoords.x * tileSize - map.getPixelBounds().min.x;
+            const y = tileCoords.y * tileSize - map.getPixelBounds().min.y;
+            context.drawImage(img, x, y, tileSize, tileSize);
 
-let currentRotation = 0;
-
-L.Map.include({
-    setBearing: function(angle) {
-        this._bearing = angle;
-        this.fire('bearingchange');
-        return this;
-    },
-    getBearing: function() {
-        return this._bearing || 0;
-    }
-});
-
-map.on('bearingchange', function() {
-    const center = map.getCenter();
-    map.setView(center, map.getZoom(), {
-        animate: false,
-        bearing: map.getBearing()
+            loadedTiles++;
+            if (loadedTiles === tiles.length) {
+                detectRust(canvas, context);
+            }
+        };
     });
-});
+}
+
+function detectRust(canvas, context) {
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const lowerRust = [60, 20, 10];  // Adjusted lower bound for rust color based on provided images
+    const upperRust = [200, 120, 80];  // Adjusted upper bound for rust color based on provided images
+    const closeToRust = 40;  // Tolerance for "close to rust" colors
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        if (r >= lowerRust[0] && r <= upperRust[0] && 
+            g >= lowerRust[1] && g <= upperRust[1] && 
+            b >= lowerRust[2] && b <= upperRust[2]) {
+            data[i] = 255; // Red
+            data[i + 1] = 0; // Green
+            data[i + 2] = 0; // Blue
+        } else if (Math.abs(r - lowerRust[0]) <= closeToRust &&
+                   Math.abs(g - lowerRust[1]) <= closeToRust &&
+                   Math.abs(b - lowerRust[2]) <= closeToRust) {
+            data[i] = 255; // Yellow outline for close to rust colors
+            data[i + 1] = 255; 
+            data[i + 2] = 0; 
+        } else {
+            data[i + 3] = 50; // Reduce opacity for non-rust areas
+        }
+    }
+
+    context.putImageData(imageData, 0, 0);
+}
