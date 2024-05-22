@@ -49,100 +49,23 @@
             border-radius: 10px;
             margin-top: 20px;
         }
-        #info {
-            margin-top: 10px;
-            width: 90%;
-            background: #f8f8f8;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #messages-container {
-            width: 90%;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        #messages {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f1f1f1;
-            border-radius: 5px;
-        }
-        .message.error {
-            background: #ffdddd;
-        }
-        .message.success {
-            background: #ddffdd;
-        }
-        #filter-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        .filter-button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .filter-button.active {
-            background-color: #0044cc;
-            color: white;
-        }
-        #street-view-container {
-            width: 90%;
-            height: 400px;
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        #street-view {
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-        }
-        #save-streetview-btn {
-            padding: 10px 20px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #0044cc;
-            color: white;
-        }
     </style>
 </head>
 <body>
-   <div class="header">
-    <h1>LifeTimeRoofing - Roof Area Detection - Version 1.5</h1>
-    <select id="layer-select">
-        <option value="auckland">Auckland Central 2023</option>
-        <option value="bayOfPlenty">Bay of Plenty 2023</option>
-        <option value="taurangaCity">Tauranga City Urban 2022</option>
-        <option value="waikato">Waikato 2021-2022</option>
-        <option value="waikatoUrban">Waikato Urban 2021</option>
-        <option value="wellingtonCity">Wellington City Urban 2021</option>
-        <option value="aerial">Aerial</option>
-    </select>
-    <input type="text" id="search-bar" placeholder="Search location...">
-</div>
+    <div class="header">
+        <h1>LifeTimeRoofing - Roof Area Detection - Version 1.5</h1>
+        <select id="layer-select">
+            <option value="auckland">Auckland Central 2023</option>
+            <option value="bayOfPlenty">Bay of Plenty 2023</option>
+            <option value="taurangaCity">Tauranga City Urban 2022</option>
+            <option value="waikato">Waikato 2021-2022</option>
+            <option value="waikatoUrban">Waikato Urban 2021</option>
+            <option value="wellingtonCity">Wellington City Urban 2021</option>
+            <option value="aerial">Aerial</option>
+        </select>
+        <input type="text" id="search-bar" placeholder="Search location...">
     </div>
-    <div id="map"></div>
+        <div id="map"></div>
     <div id="info">
         <p id="area-detection">Area: </p>
     </div>
@@ -159,7 +82,7 @@
         </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
     <script src="script.js"></script>
