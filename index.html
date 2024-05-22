@@ -53,9 +53,46 @@
             flex-direction: column;
             align-items: center;
         }
-        p {
+        #messages-container {
+            width: 90%;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        #messages {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .message {
             margin: 10px 0;
-            font-size: 1.2em;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        .message.error {
+            background: #ffdddd;
+        }
+        .message.success {
+            background: #ddffdd;
+        }
+        #filter-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .filter-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .filter-button.active {
+            background-color: #0044cc;
+            color: white;
         }
     </style>
 </head>
@@ -67,6 +104,14 @@
     <div id="map"></div>
     <div id="info">
         <p id="area-detection">Area: </p>
+    </div>
+    <div id="messages-container">
+        <div id="messages"></div>
+        <div id="filter-buttons">
+            <button class="filter-button" data-type="all">All</button>
+            <button class="filter-button" data-type="error">Errors</button>
+            <button class="filter-button" data-type="success">Success</button>
+        </div>
     </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
