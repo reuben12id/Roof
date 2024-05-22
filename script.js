@@ -1,51 +1,26 @@
 const map = L.map('map').setView([-36.8485, 174.7633], 14);  // Centered on Auckland CBD
 
-const aucklandLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/auckland-central-2023-0.06m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-}).addTo(map);
-
-const bayOfPlentyLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/bay-of-plenty-2023-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const taurangaCityLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/tauranga-city-urban-2022-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const waikatoLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-2021-2022-0.05m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const waikatoUrbanLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-urban-2021-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const wellingtonCityLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/wellington-city-urban-2021-0.075m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const aerialLayer = L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', {
-    maxZoom: 22,
-    attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>'
-});
-
-const baseMaps = {
-    "Auckland Central 2023": aucklandLayer,
-    "Bay of Plenty 2023": bayOfPlentyLayer,
-    "Tauranga City Urban 2022": taurangaCityLayer,
-    "Waikato 2021-2022": waikatoLayer,
-    "Waikato Urban 2021": waikatoUrbanLayer,
-    "Wellington City Urban 2021": wellingtonCityLayer,
-    "Aerial": aerialLayer
+const layers = {
+    auckland: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/auckland-central-2023-0.06m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    bayOfPlenty: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/bay-of-plenty-2023-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    taurangaCity: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/tauranga-city-urban-2022-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    waikato: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-2021-2022-0.05m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    waikatoUrban: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-urban-2021-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    wellingtonCity: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/wellington-city-urban-2021-0.075m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    aerial: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' })
 };
 
-L.control.layers(baseMaps).addTo(map);
+// Add the initial layer to the map
+layers.auckland.addTo(map);
+
+const layerSelect = document.getElementById('layer-select');
+layerSelect.addEventListener('change', function() {
+    const selectedLayer = layerSelect.value;
+    // Remove all layers
+    Object.values(layers).forEach(layer => map.removeLayer(layer));
+    // Add the selected layer
+    layers[selectedLayer].addTo(map);
+});
 
 const drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
@@ -76,7 +51,6 @@ function calculateArea(layer) {
     document.getElementById('area-detection').innerHTML = `Area: ${area.toFixed(2)} m²`;
     logMessage(`Polygon created with area: ${area.toFixed(2)} m²`, 'success');
 }
-
 const searchBar = document.getElementById('search-bar');
 
 searchBar.addEventListener('keypress', function(e) {
@@ -96,6 +70,7 @@ function geocodeQuery(query) {
                 const lon = data[0].lon;
                 map.setView([lat, lon], 18);
                 fetchBuildingData([lat, lon]);
+                displayStreetView(lat, lon);
             } else {
                 logMessage('Location not found. Please try a different query.', 'error');
             }
@@ -135,35 +110,44 @@ function fetchBuildingData(center) {
         });
 }
 
+function displayStreetView(lat, lon) {
+    const sv = new google.maps.StreetViewService();
+    panorama = new google.maps.StreetViewPanorama(document.getElementById('street-view'));
+    sv.getPanorama({location: {lat: lat, lng: lon}, radius: 50}, function(data, status) {
+        if (status === 'OK') {
+            panorama.setPano(data.location.pano);
+            panorama.setPov({
+                heading: 270,
+                pitch: 0
+            });
+            panorama.setVisible(true);
+        } else {
+            logMessage('Street View data not found for this location.', 'error');
+        }
+    });
+}
+
 function logMessage(message, type) {
-    const messageContainer = document.getElementById('messages');
+    const messagesContainer = document.getElementById('messages');
     const messageElement = document.createElement('div');
     messageElement.className = `message ${type}`;
     messageElement.textContent = message;
-    messageContainer.appendChild(messageElement);
-    messageContainer.scrollTop = messageContainer.scrollHeight;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 const filterButtons = document.querySelectorAll('.filter-button');
-
 filterButtons.forEach(button => {
     button.addEventListener('click', function() {
-        const type = this.getAttribute('data-type');
-        filterMessages(type);
-        filterButtons.forEach(btn => btn.classList.remove('active'));
+        filterMessages(this.dataset.type);
+        document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
     });
 });
 
 function filterMessages(type) {
     const messages = document.querySelectorAll('.message');
-    messages.forEach(message => {
-        if (type === 'all') {
-            message.style.display = 'block';
-        } else if (message.classList.contains(type)) {
-            message.style.display = 'block';
-        } else {
-            message.style.display = 'none';
-        }
+    messages.forEach(msg => {
+        msg.style.display = (type === 'all' || msg.classList.contains(type)) ? 'block' : 'none';
     });
 }
