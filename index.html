@@ -29,11 +29,18 @@
             font-size: 2.5em;
             margin: 0;
         }
+        #layer-select {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
         #search-bar {
             padding: 10px;
             font-size: 1em;
             border-radius: 5px;
             border: 1px solid #ccc;
+            margin-left: 10px;
         }
         #map {
             height: 800px;
@@ -94,21 +101,58 @@
             background-color: #0044cc;
             color: white;
         }
+        #street-view-container {
+            width: 90%;
+            height: 400px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #street-view {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+        #save-streetview-btn {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #0044cc;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>LifeTimeRoofing - Roof Area Detection</h1>
+        <select id="layer-select">
+            <option value="auckland">Auckland Central 2023</option>
+            <option value="bayOfPlenty">Bay of Plenty 2023</option>
+            <option value="taurangaCity">Tauranga City Urban 2022</option>
+            <option value="waikato">Waikato 2021-2022</option>
+            <option value="waikatoUrban">Waikato Urban 2021</option>
+            <option value="wellingtonCity">Wellington City Urban 2021</option>
+            <option value="aerial">Aerial</option>
+        </select>
         <input type="text" id="search-bar" placeholder="Search location...">
     </div>
     <div id="map"></div>
     <div id="info">
         <p id="area-detection">Area: </p>
     </div>
+    <div id="street-view-container">
+        <div id="street-view"></div>
+    </div>
+    <button id="save-streetview-btn">Save Street View</button>
     <div id="messages-container">
         <div id="messages"></div>
         <div id="filter-buttons">
-            <button class="filter-button" data-type="all">All</button>
+            <button class="filter-button active" data-type="all">All</button>
             <button class="filter-button" data-type="error">Errors</button>
             <button class="filter-button" data-type="success">Success</button>
         </div>
@@ -116,6 +160,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
     <script src="script.js"></script>
 </body>
 </html>
