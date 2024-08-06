@@ -7,8 +7,8 @@ const layers = {
     waikato: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-2021-2022-0.05m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
     waikatoUrban: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-urban-2021-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
     wellingtonCity: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/wellington-city-urban-2021-0.075m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
-    sydney: L.tileLayer('https://basemaps.six.nsw.gov.au/v1/tiles/sydney-2024-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp', { maxZoom: 22, attribution: '&copy; <a href="https://www.six.nsw.gov.au/">Six Maps</a>' }),
-    aerial: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' })
+    aerial: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
+    sydney: L.tileLayer('https://maps.six.nsw.gov.au/arcgis/rest/services/Maps/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: '&copy; <a href="https://maps.six.nsw.gov.au/">Six Maps</a>' })
 };
 
 // Add the initial layer to the map
@@ -55,4 +55,83 @@ function calculateArea(layer) {
 
 const searchBar = document.getElementById('search-bar');
 
-searchBar.addEventListener('keypress', function
+searchBar.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        const query = searchBar.value;
+        geocodeQuery(query);
+    }
+});
+
+function geocodeQuery(query) {
+    logMessage(`Geocoding query: ${query}`, 'success');
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                const lat = data[0].lat;
+                const lon = data[0].lon;
+                map.setView([lat, lon], 18);
+                fetchBuildingData([lat, lon]);
+            } else {
+                logMessage('Location not found. Please try a different query.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            logMessage('An error occurred while searching. Please try again.', 'error');
+        });
+}
+
+function fetchBuildingData(center) {
+    const lat = center[0];
+    const lon = center[1];
+    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];way[building](around:50,${lat},${lon});out body;`;
+
+    logMessage(`Fetching building data for coordinates: [${lat}, ${lon}]`, 'success');
+    fetch(overpassUrl)
+        .then(response => response.json())
+        .then(data => {
+            const elements = data.elements;
+            if (elements.length > 0) {
+                elements.forEach(element => {
+                    if (element.type === "way") {
+                        const coordinates = element.geometry.map(point => [point.lat, point.lon]);
+                        const polygon = L.polygon(coordinates).addTo(map);
+                        drawnItems.addLayer(polygon);
+                        calculateArea(polygon);
+                    }
+                });
+            } else {
+                logMessage('No building data found for this location.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            logMessage('An error occurred while fetching building data. Please try again.', 'error');
+        });
+}
+
+function logMessage(message, type) {
+    const messagesContainer = document.getElementById('messages');
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${type}`;
+    messageElement.textContent = message;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+const filterButtons = document.querySelectorAll('.filter-button');
+filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        filterMessages(this.dataset.type);
+        document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+function filterMessages(type) {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(msg => {
+        msg.style.display = (type === 'all' || msg.classList.contains(type)) ? 'block' : 'none';
+    });
+}
