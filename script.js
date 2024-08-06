@@ -7,8 +7,7 @@ const layers = {
     waikato: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-2021-2022-0.05m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
     waikatoUrban: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/waikato-urban-2021-0.1m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
     wellingtonCity: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/wellington-city-urban-2021-0.075m/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
-    aerial: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' }),
-    sydney: L.tileLayer('https://maps.six.nsw.gov.au/arcgis/rest/services/Maps/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: '&copy; <a href="https://maps.six.nsw.gov.au/">Six Maps</a>' })
+    aerial: L.tileLayer('https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01hxzamyva2g6m208n3sqhsv23', { maxZoom: 22, attribution: '&copy; <a href="https://www.linz.govt.nz/">LINZ</a>' })
 };
 
 // Add the initial layer to the map
@@ -52,7 +51,6 @@ function calculateArea(layer) {
     document.getElementById('area-detection').innerHTML = `Area: ${area.toFixed(2)} m²`;
     logMessage(`Polygon created with area: ${area.toFixed(2)} m²`, 'success');
 }
-
 const searchBar = document.getElementById('search-bar');
 
 searchBar.addEventListener('keypress', function(e) {
@@ -72,6 +70,7 @@ function geocodeQuery(query) {
                 const lon = data[0].lon;
                 map.setView([lat, lon], 18);
                 fetchBuildingData([lat, lon]);
+                displayStreetView(lat, lon);
             } else {
                 logMessage('Location not found. Please try a different query.', 'error');
             }
@@ -109,6 +108,23 @@ function fetchBuildingData(center) {
             console.error('Error:', error);
             logMessage('An error occurred while fetching building data. Please try again.', 'error');
         });
+}
+
+function displayStreetView(lat, lon) {
+    const sv = new google.maps.StreetViewService();
+    panorama = new google.maps.StreetViewPanorama(document.getElementById('street-view'));
+    sv.getPanorama({location: {lat: lat, lng: lon}, radius: 50}, function(data, status) {
+        if (status === 'OK') {
+            panorama.setPano(data.location.pano);
+            panorama.setPov({
+                heading: 270,
+                pitch: 0
+            });
+            panorama.setVisible(true);
+        } else {
+            logMessage('Street View data not found for this location.', 'error');
+        }
+    });
 }
 
 function logMessage(message, type) {
